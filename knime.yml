@@ -1,0 +1,19 @@
+# This is the configuration file for your KNIME extension.
+# It is used to define the extension's metadata and configuration.
+
+# Extension metadata
+name: first_extension  # Will be concatenated with the group_id to an ID
+group_id: org.tutorial
+description: My First Extension # Human readable bundle name / description
+long_description: This extension is my first Python extension.
+version: 0.1.0 # Version of this Python node extension
+
+# legal information 
+author: Bobby Test
+vendor: KNIME AG, Zurich, Switzerland
+license_file: LICENSE.TXT # Best practice: put your LICENSE.TXT next to the knime.yml; otherwise you would need to change to path/to/LICENSE.txt
+
+
+# Python settings 
+pixi_toml_path: pixi.toml # This is necessary for bundling, but not needed during development
+extension_module: ./src/extension # The .py Python module containing the nodes of your extension

@@ -1,0 +1,21 @@
+[workspace]
+channels = ["knime", "conda-forge"]
+platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+
+[tasks]
+
+[dependencies]
+python = "3.11.*"
+knime-extension = "*"
+knime-python-base = "*"
+
+[feature.build.dependencies]
+python = "3.9.*"
+knime-extension-bundling = "5.4.*"
+
+[feature.build.tasks]
+build = { args = [{ "arg" = "dest", "default" = "../my_update_site" }], cmd = "build_python_extension . {{ dest }}"}
+
+[environments]
+build = {features = ["build"], no-default-feature = true}
+

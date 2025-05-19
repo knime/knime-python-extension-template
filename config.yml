@@ -1,0 +1,4 @@
+org.tutorial.first_extension: # {group_id}.{name} from the knime.yml
+  src: <path_to_this_repository>/src # Path to folder containing the extension files
+  conda_env_path: <path_to_this_repository>/.pixi/envs/default # Path to the Python environment to use (use an absolute path)
+  debug_mode: true # Optional line, if set to true, it will always use the latest changes of execute/configure, when that method is used within the KNIME Analytics Platform
