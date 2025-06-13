@@ -4,29 +4,6 @@ import knime.extension as knext
 LOGGER = logging.getLogger(__name__)
 
 
-@knext.parameter_group(label="Model Parameters")
-class TopGroup:
-    top_k = knext.IntParameter(
-        label="Top k",
-        description="The number of top-k tokens to consider when generating text.",
-        default_value=1,
-        min_value=0,
-        is_advanced=True,
-    )
-
-    max_new_tokens = knext.IntParameter(
-        label="Max new tokens",
-        description="""
-        The maximum number of tokens to generate in the completion.
-
-        The token count of your prompt plus *max new tokens* cannot exceed the model's context length.
-        """,
-        default_value=50,
-        min_value=0,  # TODO Needs to be commented for the advanced params to be shown
-        # is_advanced=True, # TODO Needs to be uncommented for the other advanced param to be shown
-    )
-
-
 @knext.node(
     name="My Template Node",
     node_type=knext.NodeType.LEARNER,
@@ -41,7 +18,27 @@ class TemplateNode:
     Can be multiple lines.
     """
 
-    model_settings = TopGroup()
+    param_0 = knext.IntParameter(
+        label="Param 1",
+        description="",
+        default_value=1,
+    )
+
+    param_1 = knext.IntParameter(
+        label="Param 1",
+        description="",
+        default_value=1,
+        is_advanced=True,
+        min_value=0,  # The "show advanced settings" button will show up if this is None
+    )
+
+    # If there is a non-number parameter that is advanced, the "show advanced settings" button shows up
+    # param_2 = knext.StringParameter(
+    #     label="Param 2",
+    #     description="",
+    #     default_value="default",
+    #     is_advanced=True,
+    # )
 
     def configure(self, configure_context, input_schema_1):
         return input_schema_1
