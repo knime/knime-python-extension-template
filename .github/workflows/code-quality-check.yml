@@ -1,0 +1,181 @@
+name: Code Format Check
+run-name: Running code quality checks
+
+on:
+  push:
+    branches: "*"
+  pull_request:
+    branches: "*"
+  workflow_dispatch:
+  # set ACTIONS_STEP_DEBUG to true in Repo Settings -> Secrets and Variables -> Actions -> Variables -> "New Repository Variable"
+
+jobs:
+  ruff-format:
+    name: Ruff Format & Lint Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: List Python files to be checked
+        run: |
+          echo "## Python files in repository:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          # adapt the following command to exclude/include any files and folders
+          find . -name "*.py" -not -path "./.git/*" -not -path "./.pixi/*" | sort >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check snake case naming style for Python files and folders
+        id: snake-case-naming-check
+        run: |
+          violations=0
+
+          bad_files="$(mktemp)"
+          bad_dirs="$(mktemp)"
+
+          while IFS= read -r file; do
+            base_name="$(basename "$file")"
+            dir_path="$(dirname "$file" | sed 's#^\./##')"
+
+            if ! [[ "$base_name" =~ ^[a-z][a-z0-9_]*\.py$ ]]; then
+              echo "$file" >> "$bad_files"
+              violations=1
+            fi
+
+            IFS='/' read -r -a parts <<< "$dir_path"
+            for part in "${parts[@]}"; do
+              [ -z "$part" ] && continue
+              case "$part" in
+                .git|.github|.pixi|.venv|venv|__pycache__|site-packages|node_modules|dist|build)
+                  continue ;;
+              esac
+              if ! [[ "$part" =~ ^[a-z][a-z0-9_]*$ ]]; then
+                echo "$part [$file]" >> "$bad_dirs"
+                violations=1
+              fi
+            done
+          done < <(find . -type f -name "*.py" \
+                    -not -path "./.git/*" \
+                    -not -path "./.github/*" \
+                    -not -path "./.pixi/*" \
+                    -not -path "./venv/*" \
+                    -not -path "./.venv/*" \
+                    -not -path "*/__pycache__/*")
+
+          if [ -s "$bad_files" ] || [ -s "$bad_dirs" ]; then
+            echo "## Snake case naming check FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [ -s "$bad_files" ]; then
+              echo "### Python file names that are not snake case:" >> $GITHUB_STEP_SUMMARY
+              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+              sort -u "$bad_files" >> $GITHUB_STEP_SUMMARY
+              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [ -s "$bad_dirs" ]; then
+              echo "### Non-snake_case directory names (with example file path):" >> $GITHUB_STEP_SUMMARY
+              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+              sort -u "$bad_dirs" >> $GITHUB_STEP_SUMMARY
+              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+            rm -f "$bad_files" "$bad_dirs"
+            exit 1
+          else
+            echo "## Snake case naming check PASSED" >> $GITHUB_STEP_SUMMARY
+            rm -f "$bad_files" "$bad_dirs"
+          fi
+        continue-on-error: true
+
+      - name: Run Ruff Format Check
+        id: format-check
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: format --check --diff
+        continue-on-error: true
+
+      - name: Run Ruff Lint Check
+        id: lint-check
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: check --output-format=github
+        continue-on-error: true
+
+      - name: Detailed Format Analysis (if format check failed)
+        if: steps.format-check.outcome == 'failure'
+        run: |
+          echo "## Format Check Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Files needing formatting:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          
+          # Show which files need formatting
+          echo "# Files that should be reformatted:" >> $GITHUB_STEP_SUMMARY
+          ruff format --check . 2>&1 | grep "should reformat" | sed 's/^/# /' >> $GITHUB_STEP_SUMMARY
+          
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Detailed diff of required changes:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`diff" >> $GITHUB_STEP_SUMMARY
+          ruff format --check --diff >> $GITHUB_STEP_SUMMARY || echo "Error getting diff details" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Detailed Lint Analysis (if lint check failed)
+        if: steps.lint-check.outcome == 'failure'
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Lint Check Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Linting issues found:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          ruff check . >> $GITHUB_STEP_SUMMARY 2>&1 || echo "Error getting lint details" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+
+      - name: Create final summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Check Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check Type | Status | Description |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|-------------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Format check result
+          if [ "${{ steps.format-check.outcome }}" = "success" ]; then
+            echo "|Format Check | ✅ PASSED | Code is properly formatted |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "|Format Check | ❌ FAILED | Code needs formatting |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Lint check result  
+          if [ "${{ steps.lint-check.outcome }}" = "success" ]; then
+            echo "| Lint Check | ✅ PASSED | No linting issues found |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Lint Check | ❌ FAILED | Linting issues found |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Naming check result
+          if [ "${{ steps.snake-case-naming-check.outcome }}" = "success" ]; then
+            echo "| Naming Check | ✅ PASSED | All Python files and folders are snake case |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Naming Check | ❌ FAILED | Non-snake case Python file or folder names found |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall status
+          if [ "${{ steps.format-check.outcome }}" = "success" ] && [ "${{ steps.lint-check.outcome }}" = "success" ] && [ "${{ steps.snake-case-naming-check.outcome }}" = "success" ]; then
+            echo "### Overall Status: ALL CHECKS PASSED!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Overall Status: FIXES NEEDED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please review the detailed information above and follow the fix instructions." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail job if any checks failed
+        if: steps.format-check.outcome == 'failure' || steps.lint-check.outcome == 'failure' || steps.snake-case-naming-check.outcome == 'failure'
+        run: |
+          echo "❌ Code quality checks failed. Please review the summary above for details."
+          exit 1

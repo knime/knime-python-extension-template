@@ -1,0 +1,14 @@
+# Basic Ruff configuration
+target-version = "py39"
+line-length = 88 # longest line length you can have in the python script
+exclude = [] # exclude the script from the ruff check
+
+[lint]
+select = [
+    "E", # Error(E) pycode style checks for intendations. For more details: https://docs.astral.sh/ruff/rules/#error-e
+    "F", # Flakes(F) uses Pyflakes, a program that checks for errors in source files. Important to have for writing clean scripts. For more details: https://docs.astral.sh/ruff/rules/#pyflakes-f
+    "W", # Warning(W), relevant to give out pycode style warnings.
+    "D", # Docstrings(D) checks for pydocstyle standards checks. For more details: https://docs.astral.sh/ruff/rules/#pydocstyle-d
+]
+# a sample exception added for certain rules to be ignored by ruff, despite having the category selected selected
+ignore = ["E501"]
