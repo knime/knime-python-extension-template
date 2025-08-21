@@ -37,6 +37,7 @@ jobs:
         with:
           name: extension-artifacts-for-update-site-${{ github.run_id }}
           path: local-update-site
+          retention-days: 1
 
 
   summary:
