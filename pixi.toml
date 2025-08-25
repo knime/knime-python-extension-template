@@ -1,5 +1,5 @@
 [workspace]
-channels = ["knime", "conda-forge"]
+channels = ["knime/label/nightly", "knime", "conda-forge"]
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 
 [tasks]
@@ -12,16 +12,17 @@ pytest = "*"
 ruff = "*"
 knime-extension = "*"
 knime-python-base = "*"
+knime-python-versions = "5.7.*"
 
 [feature.build.dependencies]
 python = "3.9.*"
-knime-extension-bundling = "5.6.*"
+knime-extension-bundling = "5.7.*"
 
 [feature.debug.dependencies]
 debugpy = "*"
 
 [feature.build.tasks]
-build = { args = [{ "arg" = "dest", "default" = "./local-update-site" }], cmd = "python ./.pixi/envs/build/bin/build_python_extension.py . {{ dest }}"}
+build = { args = [{ "arg" = "dest", "default" = "./local-update-site" }], cmd = "build-python-extension . {{ dest }}"}
 
 [environments]
 build = {features = ["build"], no-default-feature = true}

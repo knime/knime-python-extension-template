@@ -1,6 +1,7 @@
 # ![Image](https://www.knime.com/sites/default/files/knime_logo_github_40x40_4layers.png) KNIME® -  KNIME PYTHON EXTENSION TEMPLATE
 
 [![CI](https://github.com/knime/knime-python-extension-template/actions/workflows/ci.yml/badge.svg)](https://github.com/knime/knime-python-extension-template/actions/workflows/ci.yml)
+[![Workflow Test](https://github.com/marc-lehner/knime-python-extension-template/actions/workflows/run_knime_workflow_test.yml/badge.svg)](https://github.com/marc-lehner/knime-python-extension-template/actions/workflows/run_knime_workflow_test.yml)
 
 This repository is maintained by the [KNIME Team Rakete](mailto:team-rakete@knime.com).
 
