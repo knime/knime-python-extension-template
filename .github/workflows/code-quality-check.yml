@@ -1,4 +1,4 @@
-name: Code Format Check
+name: Code Quality Check
 run-name: Running code quality checks
 
 on:
@@ -38,7 +38,8 @@ jobs:
             base_name="$(basename "$file")"
             dir_path="$(dirname "$file" | sed 's#^\./##')"
 
-            if ! [[ "$base_name" =~ ^[a-z][a-z0-9_]*\.py$ ]]; then
+            # Allow special module file __init__.py
+            if ! [[ "$base_name" =~ ^(__init__|[a-z][a-z0-9_]*)\.py$ ]]; then
               echo "$file" >> "$bad_files"
               violations=1
             fi
@@ -67,7 +68,7 @@ jobs:
             echo "## Snake case naming check FAILED" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             if [ -s "$bad_files" ]; then
-              echo "### Python file names that are not snake case:" >> $GITHUB_STEP_SUMMARY
+              echo "### Python file names that are not snake case (excluding __init__.py):" >> $GITHUB_STEP_SUMMARY
               echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
               sort -u "$bad_files" >> $GITHUB_STEP_SUMMARY
               echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
@@ -87,6 +88,7 @@ jobs:
             rm -f "$bad_files" "$bad_dirs"
           fi
         continue-on-error: true
+
 
       - name: Run Ruff Format Check
         id: format-check
