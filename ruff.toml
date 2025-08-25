@@ -9,6 +9,9 @@ select = [
     "F", # Flakes(F) uses Pyflakes, a program that checks for errors in source files. Important to have for writing clean scripts. For more details: https://docs.astral.sh/ruff/rules/#pyflakes-f
     "W", # Warning(W), relevant to give out pycode style warnings.
     "N999", # N999 is a rule that checks for invalid module name
+    "S105", # S105 is a rule that checks for the presence of a hardcoded string password
+    "S106", # Checks for potential uses of hardcoded passwords in function calls.
+    "S107", # Checks for potential uses of hardcoded passwords in function argument defaults.
     ]
 # a sample exception added for certain rules to be ignored by ruff, despite having the category selected selected
 ignore = ["E501"]
