@@ -1,4 +1,4 @@
-name: Code Format Check
+name: Code Quality Check
 run-name: Running code quality checks
 
 on:
