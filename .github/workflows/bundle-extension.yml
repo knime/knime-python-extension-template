@@ -2,7 +2,7 @@ name: Extension Bundling
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   workflow_dispatch:
     inputs:
         logLevel:
@@ -18,7 +18,7 @@ on:
 
 jobs:
   build:
-    name: Bundle extension for update site
+    name: Extension Bundling Check
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'workflow_dispatch' }}
     steps:
@@ -48,7 +48,7 @@ jobs:
     steps:
       - name: Write run summary
         run: |
-          echo "## Pixi Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
