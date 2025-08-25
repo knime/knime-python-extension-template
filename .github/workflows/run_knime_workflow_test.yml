@@ -1,0 +1,67 @@
+name: 'Run KNIME Workflow Test'
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_build:
+        description: 'Run build job'
+        required: false
+        default: 'true'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Bundle extension and build image
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_build == 'true' }}
+    env:
+      LOCAL_UPDATE_SITE_DIR: local-update-site
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0
+
+      - name: Install environment
+        run: pixi install
+
+      - name: Build local update site
+        run: pixi run build
+
+      - name: Upload update site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extensionartifacts-for-update-site-${{ github.run_id }}
+          path: ${{ env.LOCAL_UPDATE_SITE_DIR }}
+
+      - name: Compute KNIME feature group from knime.yml
+        id: knime_meta
+        shell: bash
+        run: |
+            pixi run -e build python - <<'PY'
+            import os
+            import yaml
+            with open('knime.yml', 'r', encoding='utf-8') as f:
+                y = yaml.safe_load(f)
+            group_id = (y.get('group_id') or '').strip()
+            name = (y.get('name') or '').strip()
+            if not group_id or not name:
+                raise SystemExit(f"Failed to parse group_id/name from knime.yml (group_id={group_id}, name={name})")
+            feature_group_id = f"{group_id}.features.{name}.feature.group"
+            with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as gh:
+                print(f"feature_group_id={feature_group_id}", file=gh)
+            print("Computed feature group:", feature_group_id)
+            PY
+
+      - name: Build KNIME image with local update site
+        run: |
+            docker build \
+                -f .github/workflows/Dockerfile \
+                --build-arg LOCAL_UPDATE_SITE_SRC="${{ env.LOCAL_UPDATE_SITE_DIR }}" \
+                --build-arg KNIME_FEATURES_ARG="${{ steps.knime_meta.outputs.feature_group_id }}" \
+                -t knime-executor-with-extension:ci .
