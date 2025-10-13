@@ -15,11 +15,15 @@ The code is organized as follows:
 ```
 .
 ├── icons
-│   │── icon.png
+│   └── icon.png
 ├── src
+│   ├── __init__.py
 │   └── extension.py
-├── demos
+├── demo
 │   └── Example_with_Python_node.knwf
+├── tests
+│   ├── conftest.py
+│   └── test_extension.py
 ├── knime.yml
 ├── pixi.toml
 ├── config.yml
@@ -39,25 +43,22 @@ You can find instructions on how to work with our code or develop python extensi
 * [pixi](https://pixi.sh/latest/)
 
 ### Instructions:
-1. **Clone** this repository or use it as a **template** (click on the green "Use this template" button):
-2. **Edit** `knime.yml` -  provide your metadata, license, ...
-3. _(Optional)_ Modify the `src/extension.py` file to implement your own logic.
-4. _(Optional)_ Add python packages to the environment with the following command, or by manually editing the `pixi.toml` file:
-
-    ```bash
-    pixi add <package_name>
-    ```
-
-    It is good practice to keep the `pixi.lock` file in this repository and commit the changes to it whenever you add packages or update them with `pixi update`.
-5. **Install** the python environment:
+3. **Modify** the `src/extension.py` file or **add** further files to implement your own logic. Note that every py file equivalent to one node needs to be imported in the init.py file.
+4. **Install** the python environment:
     ```bash
     pixi install
     ```
-6. **Test** the extension in the KNIME Analytics Platform with the extension in debug mode by adding the following line to the knime.ini file (adjust <path_to_this_repository> in the config.yml):    
+    This will install the Python environment as defined in the `pixi.toml` file. If you leave this file unchanged, the Python environment that is installed will have the needed KNIME packages installed per default (knime-python-versions). 
+5. _(Optional)_ Add python packages to the environment with the following command, or by manually editing the `pixi.toml` file:
+    ```bash
+    pixi add <package_name>
     ```
-    -Dknime.python.extension.config=<path/to/your/config.yml>
+    Note that you have to run the `pixi install` command again after manually editing the `pixi.toml` file. 
+6. **Install** the extension in debug mode in your KNIME Analytics Platformby running the following command: 
     ```
-   This will start the KNIME Analytics Platform with your extension installed. You can now test your extension in the KNIME Analytics Platform (e.g. demo workflow). 
+    pixi run register-debug-in-knime
+    ```
+   Previously this step required modifying the `config.yml`and `knime.ini` files manually. This improvement will allow you to select your KNIME Analytics Platform installation and append the `-Dknime.python.extension.debug_knime_yaml_list=<path/to/your/knime.yml>` argument automatically to the according `knime.ini` file. You can now test your extension in the KNIME Analytics Platform (e.g. demo workflow). 
 7. **Bundle** your extension:
     ```bash
     pixi run build

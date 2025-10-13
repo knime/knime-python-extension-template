@@ -12,18 +12,18 @@ pytest = "*"
 ruff = "*"
 knime-extension = "*"
 knime-python-base = "*"
-knime-python-versions = "5.7.*"
+knime-python-versions = "5.*"
 
 [feature.build.dependencies]
 python = "3.9.*"
-knime-extension-bundling = "5.7.*"
+knime-extension-bundling = "5.*"
 
 [feature.debug.dependencies]
 debugpy = "*"
 
 [feature.build.tasks]
 build = { args = [{ "arg" = "dest", "default" = "./local-update-site" }], cmd = "build-python-extension . {{ dest }} --update-sites-version nightly"}
-register_debug_in_knime = { description = "Register the current KNIME extension with a KNIME installation. Usage: 'pixi run register-debug-in-knime' (default locations) or 'pixi run register-debug-in-knime C:/' (search entire C: drive if no executables found). Note windows paths should not end with \\ (backslash)", args = [
+register-debug-in-knime = { description = "Register the current KNIME extension with a KNIME installation. Usage: 'pixi run register-debug-in-knime' (default locations) or 'pixi run register-debug-in-knime C:/' (search entire C: drive if no executables found). Note windows paths should not end with \\ (backslash)", args = [
                 { "arg" = "search_path", "default" = "" }], cmd = "register-debug-in-knime{% if search_path %} --search-path \"{{ search_path }}\"{% endif %}" }
 
 
