@@ -10,9 +10,9 @@ LOGGER = logging.getLogger(__name__)
     icon_path="../icons/icon.png",
     category="/",
 )
-@knext.input_table(name="Input Data", description="We read data from here")
+# @knext.input_table(name="Input Data", description="We read data from here")
 # @knext.input_table(name="Tutorial: Input Data 2", description="We also read data from here") ### Tutorial step 11: Uncomment to create a new input port
-@knext.output_table(name="Output Data", description="Whatever the node has produced")
+# @knext.output_table(name="Output Data", description="Whatever the node has produced")
 class TemplateNode:
     """Short one-line description of the node.
     Long description of the node.
@@ -40,17 +40,27 @@ class TemplateNode:
 
     # column_param = knext.ColumnParameter(label="label", description="description", port_index=0, column_filter=is_numeric)
 
-    def configure(self, configure_context, input_schema_1):
+    date = knext.DateTimeParameter(
+        label="Date Parameter",
+        description="A date time parameter",
+        default_value="2023-01-01",
+    )
+
+    @date.validator
+    def validate_date(value):
+        logging.warning(f"Validating date: {value}, type: {type(value)}")
+
+    def configure(self, configure_context):
         # def configure(self, configure_context, input_schema_1, input_schema_2):  ### Tutorial step 11: Uncomment to configure the new port (and comment out the previous configure header)
-        return input_schema_1
+        return []
         ### Tutorial step 12: Uncomment the following to adjust to the changes we do in this step in the execute method (and comment out the previous return statement)
         # return input_schema_1.append(knext.Column(knext.double(), "column2"))
         ### Tutorial step 13: Uncomment to set a warning for the configuration, which will be shown in the workflow
         # configure_context.set_warning("This is a warning during configuration")
 
-    def execute(self, exec_context, input_1):
+    def execute(self, exec_context):
         # def execute(self, exec_context, input_1, input_2):  ### Tutorial step 11: Uncomment to accept the new port (and comment out the previous execute header)
-        return input_1
+        return []
         ### Tutorial step 12: Uncomment the following lines to work with the new port (and comment out the previous return statement)
         # input_1_pandas = input_1.to_pandas() # Transform the input table to some processable format (pandas or pyarrow)
         # input_2_pandas = input_2.to_pandas()
