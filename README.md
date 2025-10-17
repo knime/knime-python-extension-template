@@ -74,7 +74,7 @@ You can find instructions on how to work with our code or develop python extensi
     File > Install KNIME Extensions... > Available Software Sites > Add... 
     ```
     and enter the path to your update site (by default `./local_update_site`). After that, you can install your extension.
-9. To **publish** on KNIME Hub, follow the [KNIME Hub documentation](https://docs.knime.com/latest/knime_hub_guide/index.html#publishing_your_extension).
+9. To **publish** on KNIME Hub, follow the [KNIME Hub documentation](https://docs.knime.com/latest/development_contribute_extension/index.html#_publish_your_extension).
 
 For detailed instructions on how to create a KNIME Python extension, please refer to the [KNIME Python Extension documentation](https://docs.knime.com/latest/pure_python_node_extensions_guide/index.html).
 
