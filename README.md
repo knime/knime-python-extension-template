@@ -43,6 +43,8 @@ You can find instructions on how to work with our code or develop python extensi
 * [pixi](https://pixi.sh/latest/)
 
 ### Instructions:
+1. **Clone** this repository or use it as a **template** (click on the green "Use this template" button):
+2. **Edit** `knime.yml` -  provide your metadata, license, ...
 3. **Modify** the `src/extension.py` file or **add** further files to implement your own logic. Note that every py file equivalent to one node needs to be imported in the init.py file.
 4. **Install** the python environment:
     ```bash
@@ -54,7 +56,7 @@ You can find instructions on how to work with our code or develop python extensi
     pixi add <package_name>
     ```
     Note that you have to run the `pixi install` command again after manually editing the `pixi.toml` file. 
-6. **Install** the extension in debug mode in your KNIME Analytics Platformby running the following command: 
+6. **Install** the extension in debug mode in your KNIME Analytics Platform by running the following command: 
     ```
     pixi run register-debug-in-knime
     ```
