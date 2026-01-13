@@ -13,6 +13,7 @@ ruff = "*"
 knime-extension = "*"
 knime-python-base = "*"
 knime-python-versions = "5.*"
+pyqt = ">=5.15.11,<6"
 
 [feature.build.dependencies]
 python = "3.9.*"

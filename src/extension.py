@@ -1,63 +1,93 @@
 import logging
 import knime.extension as knext
+import sys
+
+from threading import Event
+import multiprocessing
+
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout
 
 LOGGER = logging.getLogger(__name__)
 
+class QtGUIWidget:
+    def __init__(self) -> None:
+        self.app: QApplication
+        self.window: QWidget
+        self.label: QLabel
+        self.button: QPushButton
+        self._execute_finished = Event()
+        self._button_clicked = False
+
+    def run(self) -> None:
+        # PyQt6 and PySide6 - both equal:
+        self.app = QApplication(sys.argv)
+        self.window = QWidget()
+        self.window.setWindowTitle("Qt GUI Widget")
+
+        layout = QVBoxLayout()
+
+        self.label = QLabel("Initial text")
+        layout.addWidget(self.label)
+
+        self.button = QPushButton("Click me!")
+        self.button.clicked.connect(self.on_button_clicked)
+        layout.addWidget(self.button)
+
+        self.window.setLayout(layout)
+
+        # this freezes Knime AP:
+        self.window.show()
+        # We don't even get here:
+        self.app.exec()
+
+        self._execute_finished.set()
+
+    def on_button_clicked(self) -> None:
+        if not self._button_clicked:
+            # First click: change label and button text
+            self.label.setText("Button clicked!")
+            self.button.setText("Close me")
+            self._button_clicked = True
+        else:
+            # Second click: close the window
+            self.window.close()
+
+    def result(self) -> list[str]:
+        return ["a", "b"]
+
+
+def run_gui_process():
+    """Function to be run in a separate process."""
+    widget = QtGUIWidget()
+    widget.run()
 
 @knext.node(
-    name="My Template Node",
-    node_type=knext.NodeType.LEARNER,
-    icon_path="../icons/icon.png",
+    name="QT Test Node",
+    node_type=knext.NodeType.OTHER,
+    icon_path="../../icons/my_icon.png",
     category="/",
 )
-@knext.input_table(name="Input Data", description="We read data from here")
-# @knext.input_table(name="Tutorial: Input Data 2", description="We also read data from here") ### Tutorial step 11: Uncomment to create a new input port
-@knext.output_table(name="Output Data", description="Whatever the node has produced")
-class TemplateNode:
-    """Short one-line description of the node.
-    Long description of the node.
-    Can be multiple lines.
+class MyGUITestNode:
+    """
+    Short one-line description of the node.
+
+    Long description of the node which is in fact short.
     """
 
-    ### Tutorial step 10: Uncomment all of the following parameters and the 'is_numeric' method to create your first dialogue ###
-    # (Restart KAP and drag&drop the node again from the node repository to let changes take effect)
-    # some_param = knext.IntParameter("Some Int Parameter", "The answer to everything", 42, min_value=0)
+    def configure(
+        self,
+        configure_context: knext.ConfigurationContext,  # noqa: ARG002
+    ) -> None:
+        return
 
-    # another_param = knext.StringParameter("Some String parameter", "The classic placeholder", "foobar")
+    def execute(
+        self,
+        exec_context: knext.ExecutionContext,
+    ) -> None:
 
-    # double_param = knext.DoubleParameter("Double Parameter", "Just for test purposes", 3.0)
+        # Start a second process to run the Qt App
+        p = multiprocessing.Process(target=run_gui_process)
+        p.start()
 
-    # boolean_param = knext.BoolParameter("Boolean Parameter", "also just for testing", True)
-
-    # column_param = knext.ColumnParameter()
-
-    # def is_numeric(column):  # Filter columns visible in the column_param for numeric ones
-    #     return (
-    #         column.ktype == knext.double()
-    #         or column.ktype == knext.int32()
-    #         or column.ktype == knext.int64()
-    #     )
-
-    # column_param = knext.ColumnParameter(label="label", description="description", port_index=0, column_filter=is_numeric)
-
-    def configure(self, configure_context, input_schema_1):
-        # def configure(self, configure_context, input_schema_1, input_schema_2):  ### Tutorial step 11: Uncomment to configure the new port (and comment out the previous configure header)
-        return input_schema_1
-        ### Tutorial step 12: Uncomment the following to adjust to the changes we do in this step in the execute method (and comment out the previous return statement)
-        # return input_schema_1.append(knext.Column(knext.double(), "column2"))
-        ### Tutorial step 13: Uncomment to set a warning for the configuration, which will be shown in the workflow
-        # configure_context.set_warning("This is a warning during configuration")
-
-    def execute(self, exec_context, input_1):
-        # def execute(self, exec_context, input_1, input_2):  ### Tutorial step 11: Uncomment to accept the new port (and comment out the previous execute header)
-        return input_1
-        ### Tutorial step 12: Uncomment the following lines to work with the new port (and comment out the previous return statement)
-        # input_1_pandas = input_1.to_pandas() # Transform the input table to some processable format (pandas or pyarrow)
-        # input_2_pandas = input_2.to_pandas()
-        # input_1_pandas['column2'] = input_1_pandas['column1'] + input_2_pandas['column1']
-        # return knext.Table.from_pandas(input_1_pandas)
-        ### Tutorial step 13: Uncomment the following line to use the parameters from the configuration dialogue (and comment out the previous return statement)
-        # input_1_pandas['column2'] = input_1_pandas['column2'] + self.double_param
-        # LOGGER.warning(self.double_param) # Tutorial step 14: Logging some warning to the console
-        # exec_context.set_warning("This is a warning") # Tutorial step 14: Set a warning to be shown in the workflow
-        # return knext.Table.from_pandas(input_1_pandas) ### Tutorial step 13: Uncomment
+        # We can wait for it or continue
+        p.join()
